@@ -28,7 +28,9 @@ class StudentController extends Controller
     return view('admin.students.index', compact('students'));
   }
 
-  public function create(){ return view('admin.students.create'); }
+  public function create(){
+    return redirect()->route('admin.students.index')->with('openStudentModal', true);
+  }
 
   public function store(Request $r){
     $data = $r->validate([
@@ -50,8 +52,7 @@ class StudentController extends Controller
 
   public function edit(User $student){
     abort_unless($student->role === 'student', 404);
-    $student->load('profile','marks');
-    return view('admin.students.edit', compact('student'));
+    return redirect()->route('admin.students.index');
   }
 
   public function update(Request $r, User $student){

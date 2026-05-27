@@ -133,6 +133,7 @@
                             </a>
                         </li>
 
+                        {{--
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}"
                                href="{{ route('admin.categories.index') }}">
@@ -156,11 +157,12 @@
                                 <span>Answers</span>
                             </a>
                         </li>
+                        --}}
                     </ul>
 
                     <div class="update-msg text-center">
                         <h5 class="mt-1">AI Interview</h5>
-                        <p class="mb-3 text-muted">Manage interview topics, questions, and answers from one place.</p>
+                        <p class="mb-3 text-muted">Manage student access and interview activity from one place.</p>
                         <form method="POST" action="{{ route('admin.logout') }}">
                             @csrf
                             <button type="submit" class="btn bg-black text-white shadow-sm rounded-pill">Logout</button>
@@ -219,4 +221,3 @@
     @stack('body')
 </body>
 </html>
-
