@@ -21,8 +21,8 @@
   </div>
 
   <div class="card">
-    <table class="table">
-      <thead>
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
         <tr>
           <th style="width:80px">ID</th>
           <th>Name</th>
@@ -58,4 +58,3 @@
     </div>
   </div>
 @endsection
-

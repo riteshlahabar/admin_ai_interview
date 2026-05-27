@@ -12,7 +12,19 @@ use Illuminate\Support\Facades\Hash;
 class StudentController extends Controller
 {
   public function index(){
-    $students = User::where('role','student')->with('profile')->latest()->paginate(20);
+    $q = trim((string) request('q', ''));
+
+    $students = User::where('role', 'student')
+      ->with('profile')
+      ->when($q !== '', function ($query) use ($q) {
+        $query->where(function ($search) use ($q) {
+          $search->where('name', 'like', "%{$q}%")
+            ->orWhere('email', 'like', "%{$q}%");
+        });
+      })
+      ->latest()
+      ->paginate(20);
+
     return view('admin.students.index', compact('students'));
   }
 

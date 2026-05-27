@@ -39,8 +39,8 @@
   </div>
 
   <div class="card">
-    <table class="table">
-      <thead>
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
         <tr>
           <th style="width:70px">ID</th>
           <th>Question</th>
