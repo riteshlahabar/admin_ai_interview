@@ -36,7 +36,9 @@ class InterviewAIService
                         "You are a senior interviewer for {$role} on {$topic}. Reply in {$language}.\n" .
                         "Return ONLY JSON. Schema:\n" .
                         "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"text\": {\"type\":\"string\"},\n    \"ssml\": {\"type\":[\"string\",\"null\"]}\n  },\n  \"required\":[\"text\",\"ssml\"],\n  \"additionalProperties\": false\n}\n" .
-                        "Rules: 1) text is Markdown answer for interview only. 2) ssml is <speak>...</speak> or null. 3) Do not include SSML in text.",
+                        "Rules: 1) text must be a clear point-wise interview response using numbered points by default. " .
+                        "2) Keep text plain: no bold markers, no headings, no code fences, no JSON braces inside text. " .
+                        "3) ssml is <speak>...</speak> or null. 4) Do not include SSML in text.",
                 ],
                 ['role' => 'user', 'content' => $user],
             ],
@@ -229,18 +231,47 @@ class InterviewAIService
 
     private function normalizeAnswer(string $content): array
     {
-        $decoded = json_decode($content, true);
+        $cleanContent = $this->extractJsonCandidate($content);
+        $decoded = json_decode($cleanContent, true);
         if (!is_array($decoded) || !array_key_exists('text', $decoded)) {
             return [
-                'text' => trim(preg_replace('/<\s*speak\b[\s\S]*?<\/\s*speak\s*>/i', '', $content) ?? ''),
+                'text' => $this->sanitizeAnswerText($content),
                 'ssml' => (preg_match('/<\s*speak\b[\s\S]*?<\/\s*speak\s*>/i', $content, $matches) ? $matches[0] : null),
             ];
         }
 
         return [
-            'text' => trim((string) ($decoded['text'] ?? '')),
+            'text' => $this->sanitizeAnswerText((string) ($decoded['text'] ?? '')),
             'ssml' => isset($decoded['ssml']) && is_string($decoded['ssml']) ? $decoded['ssml'] : null,
         ];
+    }
+
+    private function extractJsonCandidate(string $content): string
+    {
+        $clean = trim($content);
+
+        if (preg_match('/```(?:json)?\s*([\s\S]*?)```/i', $clean, $matches)) {
+            $clean = trim($matches[1]);
+        }
+
+        if (json_decode($clean, true) !== null) {
+            return $clean;
+        }
+
+        if (preg_match('/\{[\s\S]*\}/', $clean, $matches)) {
+            return trim($matches[0]);
+        }
+
+        return $clean;
+    }
+
+    private function sanitizeAnswerText(string $text): string
+    {
+        $clean = preg_replace('/<\s*speak\b[\s\S]*?<\/\s*speak\s*>/i', '', $text) ?? '';
+        $clean = preg_replace('/```(?:json|markdown)?|```/i', '', $clean) ?? $clean;
+        $clean = str_replace(['**', '__'], '', $clean);
+
+        return trim($clean);
     }
 
     private function extractFallbackSuggestions(string $content): array
